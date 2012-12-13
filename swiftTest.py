@@ -65,8 +65,6 @@ class SwiftServiceTest(object):
         account_head, containers = swift.get_account(url=self.swift_url,
                                                      token=self.token,
                                                      http_conn=self.http_conn)
-        if not account_info == account_head:
-            print("Different account info returned")
         if self.debug:
             print(account_info)
             print(account_head)
