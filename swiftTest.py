@@ -30,7 +30,10 @@ class SwiftServiceTest(object):
         self.swift_url = _default(swift_url, 'OS_OBJECT_URL')
 
 
-    def connect(self):
+    def connect(self, force=False):
+        if self.http_conn is not None and not force:
+            return
+
         swift_url, self.token = swift.get_auth(auth_url=self.auth_url,
                                               user=self.username,
                                               key=self.password,
@@ -132,7 +135,20 @@ class SwiftServiceTest(object):
             print("Container {0} deleted".format(name))
 
 
-    def test_suite(self, test_name):
+    def create_object(self, cname, oname, contents, length=None):
+        swift.put_object(url=self.swift_url, token=self.token,
+                         http_conn=self.http_conn, container=cname,
+                         name=oname, contents=contents, content_length=length)
+
+
+    def delete_object(self, cname, oname):
+        swift.delete_object(url=self.swift_url, token=self.token,
+                            http_conn=self.http_conn, container=cname,
+                            name=oname)
+
+
+    def test_api(self, test_name):
+        print("Checking API")
         self.connect()
         self.get_account()
 
@@ -149,7 +165,57 @@ class SwiftServiceTest(object):
         self.get_account()
 
 
+    def stress_test(self, test_name, count=10, size=2**20):
+        print("Creating and deleting {0} containers".format(count))
+        self.connect()
+
+        with open('/dev/urandom') as dev_rand:
+            for i in range(count):
+                name = '{0}{1}'.format(test_name,i)
+                self.create_container(name)
+                for i in range(count):
+                    obj = 'obj{0}'.format(i)
+                    print(name,obj)
+                    self.create_object(cname=name, oname=obj,
+                                       contents=dev_rand, length=size)
+
+        self.get_account()
+
+        for i in range(count):
+            name = '{0}{1}'.format(test_name,i)
+            for i in range(count):
+                obj = 'obj{0}'.format(i)
+                self.delete_object(cname=name, oname=obj)
+            self.delete_container(name)
+
+
+    def test_suite(self, test_name):
+        self.test_api(test_name)
+        self.stress_test(test_name)
+
+
 if __name__ == '__main__':
+    from optparse import OptionParser
+    op = OptionParser()
+    op.add_option('-a', '--api', action='store_true', dest='api',
+                  default=False, help="Turn on basic api checking.")
+    op.add_option('-s', '--stress', action='store_true', dest='stress',
+                  default=False, help="Turn on stress testing.")
+    op.add_option('-n', '--name', dest='name', default="stress_test",
+                  help="Name to prepend to containers")
+    op.add_option('--stress-count', dest='count', default=10,
+                  help="Number of containers and objects-per-container.")
+    op.add_option('--stress-size', dest='size', default=2**20,
+                  help="Size (in bytes) of each object created")
+    options, args = op.parse_args()
+
     sst = SwiftServiceTest(debug=True)
     sst.connect()
-    sst.test_suite('testContainer')
+
+    if options.api:
+        sst.test_api(test_name=options.name)
+    
+    if options.stress:
+        sst.stress_test(test_name=options.name, count=options.count,
+                     size=options.size)
+
