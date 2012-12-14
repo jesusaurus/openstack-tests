@@ -2,6 +2,8 @@
 
 #python libs
 import os
+import csv
+from datetime import datetime
 
 #swift libs
 from swiftclient import client as swift
@@ -165,8 +167,10 @@ class SwiftServiceTest(object):
 
     def stress_test(self, test_name, count=10, size=2**20):
         print("Creating and deleting {0} containers".format(count))
+
         self.connect()
 
+        start = datetime.now()
         with open('/dev/urandom') as dev_rand:
             for i in range(count):
                 name = '{0}{1}'.format(test_name,i)
@@ -176,15 +180,23 @@ class SwiftServiceTest(object):
                     print(name,obj)
                     self.create_object(cname=name, oname=obj,
                                        contents=dev_rand, length=size)
+        create_time = datetime.now() - start
 
         self.get_account()
 
+        start = datetime.now()
         for i in range(count):
             name = '{0}{1}'.format(test_name,i)
             for i in range(count):
                 obj = 'obj{0}'.format(i)
                 self.delete_object(cname=name, oname=obj)
             self.delete_container(name)
+        delete_time = datetime.now() - start
+
+        with open('stress-{0}-{1}-{2}-times.csv'.format(test_name, count, size), 'w+b') as csvfile:
+            output = csv.writer(csvfile)
+            output.writerow(['Create time', 'Delete time'])
+            output.writerow([create_time.seconds / 60.0, delete_time.seconds / 60.0])
 
 
     def test_suite(self, test_name):
