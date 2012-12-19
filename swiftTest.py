@@ -37,18 +37,19 @@ class SwiftServiceTest(object):
             return
 
         swift_url, self.token = swift.get_auth(auth_url=self.auth_url,
-                                              user=self.username,
-                                              key=self.password,
-                                              auth_version=self.auth_ver,
-                                              tenant_name=self.tenant)
-        if not swift_url == self.swift_url:
-            print("Different swift_url returned from swift")
+                                               user=self.username,
+                                               key=self.password,
+                                               auth_version=self.auth_ver,
+                                               tenant_name=self.tenant)
         if self.debug:
             print(self.auth_url)
             print(self.token)
             print(self.swift_url)
             print(swift_url)
             print
+        if not swift_url == self.swift_url:
+            print("Different swift_url returned from swift")
+            self.swift_url = swift_url
 
         self.http_conn = swift.http_connection(self.swift_url)
 
