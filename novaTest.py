@@ -25,11 +25,11 @@ class NovaServiceTest(object):
 
     def __init__(self, username=None, password=None, tenant=None,
                  auth_url=None, region=None, keypair=None, auth_ver='2.0',
-                 debug=False):
+                 debug=False, instance_name='TimingTest'):
 
         self.auth_ver = auth_ver
         self.debug = debug
-        self.test_name = 'TimingTest'
+        self.test_name = instance_name
         self.nova = None
         self.timeout = 20
         self.server = {}
@@ -309,7 +309,7 @@ class NovaServiceTest(object):
             self.nova.servers.delete(i)
 
 if __name__ == "__main__":
-    nova_test = NovaServiceTest(debug=True)
+    nova_test = NovaServiceTest(instance_name='nova_stress_test', debug=True)
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
@@ -328,7 +328,6 @@ if __name__ == "__main__":
     print("reticulating splines")
     nova_test.set_flavor('standard.xsmall')
     nova_test.set_image('Ubuntu Precise 12.04 LTS Server 64-bit 20121026')
-    nova_test.set_name('nova_stress_test')
 
     signal.alarm(nova_test.timeout*60)
     nova_test.create()
