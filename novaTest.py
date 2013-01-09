@@ -33,6 +33,9 @@ class NovaServiceTest(object):
         self.nova = None
         self.timeout = 20
         self.server = {}
+        self.path = os.path.dirname(__file__)
+        if not self.path:
+            self.path = '.'
 
         def _default(var, env):
             if var:
@@ -156,13 +159,10 @@ class NovaServiceTest(object):
         Search the tests/ directory for python modules
         and call the run() function in any modules found.
         """
-        test = {}
         print('\nOther Tests...\n')
 
-        dn = os.path.dirname(__file__)
-        if not dn:
-            dn = '.'
-        tdir = '{0}/{1}'.format(dn, 'tests')
+        test = {}
+        tdir = '{0}/{1}'.format(self.path, 'tests')
 
         if not os.path.isdir(tdir):
             return
@@ -227,10 +227,12 @@ class NovaServiceTest(object):
     def results(self):
         '''Print out some results and calculate the min/max/mean'''
         csvfiles = {
-                'create': 'creation.csv',
-                'delete': 'deletion.csv',
-                'life':  'lifespan.csv',
+                'create': '{0}/results/creation.csv'.format(self.path),
+                'delete': '{0}/results/deletion.csv'.format(self.path),
+                'life':  '{0}/results/lifespan.csv'.format(self.path),
                 }
+        if not os.path.isdir('{0}/results'.format(self.path)):
+            os.makedirs('{0}/results'.format(self.path))
 
         data_cube = Cube(hostname="15.185.114.206")
         cube_data = {}
