@@ -309,7 +309,12 @@ class NovaServiceTest(object):
             self.nova.servers.delete(i)
 
 if __name__ == "__main__":
-    nova_test = NovaServiceTest(instance_name='nova_stress_test', debug=True)
+
+    name = 'nova_health_test'
+    if 'NOVA_NAME' in os.environ:
+        name = int(os.environ['NOVA_NAME'])
+
+    nova_test = NovaServiceTest(instance_name=name, debug=True)
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
