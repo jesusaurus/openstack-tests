@@ -25,35 +25,26 @@ class NovaServiceTest(object):
 
     def __init__(self, username=None, password=None, tenant=None,
                  auth_url=None, region=None, keypair=None, auth_ver='2.0',
-                 debug=False, instance_name='TimingTest'):
+                 count=1, instance_name='TimingTest', debug=False):
 
+        self.username = username
+        self.password = password
+        self.tenant = tenant
+        self.auth_url = auth_url
+        self.region = region
+        self.keypair = keypair
         self.auth_ver = auth_ver
-        self.debug = debug
+        self.count = count
         self.test_name = instance_name
+        self.debug = debug
+
         self.nova = None
         self.timeout = 20
         self.server = {}
+
         self.path = os.path.dirname(__file__)
         if not self.path:
             self.path = '.'
-
-        def _default(var, env):
-            if var:
-                return var
-            if env in os.environ:
-                return os.environ[env]
-            return None
-
-        self.username = _default(username, 'OS_USERNAME')
-        self.password = _default(password, 'OS_PASSWORD')
-        self.tenant = _default(tenant, 'OS_TENANT_NAME')
-        self.auth_url = _default(auth_url, 'OS_AUTH_URL')
-        self.region = _default(region, 'OS_REGION_NAME')
-        self.keypair = _default(keypair, 'OS_KEYPAIR')
-
-        self.count = 20
-        if 'NOVA_INSTANCE_COUNT' in os.environ:
-            self.count = int(os.environ['NOVA_INSTANCE_COUNT'])
 
 
     def connect(self, force=False):
@@ -310,11 +301,25 @@ class NovaServiceTest(object):
 
 if __name__ == "__main__":
 
-    name = 'nova_health_test'
+    username = os.environ['OS_USERNAME']
+    password = os.environ['OS_PASSWORD']
+    tenant = os.environ['OS_TENANT_NAME']
+    auth_url = os.environ['OS_AUTH_URL']
+    region = os.environ['OS_REGION_NAME']
+    keypair = os.environ['OS_KEYPAIR']
+
+    count = 20
+    if 'NOVA_INSTANCE_COUNT' in os.environ:
+        count = int(os.environ['NOVA_INSTANCE_COUNT'])
+
+    name = 'nova_test'
     if 'NOVA_NAME' in os.environ:
         name = os.environ['NOVA_NAME']
 
-    nova_test = NovaServiceTest(instance_name=name, debug=True)
+    nova_test = NovaServiceTest(username=username, password=password,
+                                tenant=tenant, auth_url=auth_url,
+                                region=region, keypair=keypair,
+                                instance_name=name, debug=True)
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
