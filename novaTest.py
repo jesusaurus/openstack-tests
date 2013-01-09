@@ -312,7 +312,7 @@ if __name__ == "__main__":
 
     name = 'nova_health_test'
     if 'NOVA_NAME' in os.environ:
-        name = int(os.environ['NOVA_NAME'])
+        name = os.environ['NOVA_NAME']
 
     nova_test = NovaServiceTest(instance_name=name, debug=True)
 
