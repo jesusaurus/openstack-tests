@@ -25,7 +25,7 @@ class NovaServiceTest(object):
 
     def __init__(self, username=None, password=None, tenant=None,
                  auth_url=None, region=None, keypair=None, auth_ver='2.0',
-                 count=1, instance_name='TimingTest', debug=False):
+                 count=1, instance_name='NovaServiceTest', debug=False):
 
         self.username = username
         self.password = password
@@ -61,7 +61,7 @@ class NovaServiceTest(object):
 
 
     def cleanup(self):
-        '''Remove any instances with a matching name then exit'''
+        '''Remove any instances with a matching name then exit.'''
         previous = re.compile('^' + self.test_name)
         exit = False
         for _server in self.nova.servers.list():
@@ -81,10 +81,6 @@ class NovaServiceTest(object):
     def set_image(self, image):
         '''Lookup the specified image.'''
         self.image = self.nova.images.find(name=image)
-
-
-    def set_name(self, name):
-        self.test_name = name
 
 
     def create(self):
@@ -319,7 +315,7 @@ if __name__ == "__main__":
     nova_test = NovaServiceTest(username=username, password=password,
                                 tenant=tenant, auth_url=auth_url,
                                 region=region, keypair=keypair,
-                                instance_name=name, debug=True)
+                                instance_name=name, count=count, debug=True)
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
