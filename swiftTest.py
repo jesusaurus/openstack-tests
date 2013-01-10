@@ -42,7 +42,6 @@ class SwiftServiceTest(object):
             print
         if not swift_url == self.swift_url:
             print("Different swift_url returned from swift")
-            self.swift_url = swift_url
 
         self.http_conn = swift.http_connection(self.swift_url)
 
