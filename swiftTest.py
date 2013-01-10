@@ -3,6 +3,7 @@
 #python libs
 import os
 import csv
+import hashlib
 from datetime import datetime
 
 #swift libs
@@ -10,26 +11,18 @@ from swiftclient import client as swift
 
 class SwiftServiceTest(object):
 
-    def __init__(self, username=None, password=None, tenant=None, auth_url=None,
-               auth_ver='2.0', swift_url=None, debug=False):
+    def __init__(self, username=None, password=None, tenant=None,
+                 auth_url=None, auth_ver='2.0', swift_url=None, debug=False):
 
+        self.username = username
+        self.password = password
+        self.tenant = tenant
+        self.auth_url = auth_url
+        self.swift_url = swift_url
         self.auth_ver = auth_ver
         self.debug = debug
         self.token = None
         self.http_conn = None
-
-        def _default(var, env):
-            if var:
-                return var
-            if env in os.environ:
-                return os.environ[env]
-            return None
-
-        self.username = _default(username, 'OS_USERNAME')
-        self.password = _default(password, 'OS_PASSWORD')
-        self.tenant = _default(tenant, 'OS_TENANT_NAME')
-        self.auth_url = _default(auth_url, 'OS_AUTH_URL')
-        self.swift_url = _default(swift_url, 'OS_OBJECT_URL')
 
 
     def connect(self, force=False):
@@ -109,7 +102,7 @@ class SwiftServiceTest(object):
             self.connect()
 
         retval = swift.get_container(url=self.swift_url, token=self.token,
-                            http_conn=self.http_conn, container=name)
+                                     http_conn=self.http_conn, container=name)
         if self.debug:
             print(retval)
         return retval
@@ -142,6 +135,12 @@ class SwiftServiceTest(object):
                          name=oname, contents=contents, content_length=length)
 
 
+    def get_object(self, cname, oname):
+        return swift.get_object(url=self.swift_url, token=self.token,
+                                http_conn=self.http_conn, container=cname,
+                                name=oname)
+
+
     def delete_object(self, cname, oname):
         swift.delete_object(url=self.swift_url, token=self.token,
                             http_conn=self.http_conn, container=cname,
@@ -153,10 +152,12 @@ class SwiftServiceTest(object):
         self.connect()
         self.get_account()
 
-        self.create_container(test_name, headers={'X-Container-Meta-Foo': 'Foo'})
+        self.create_container(test_name,
+                              headers={'X-Container-Meta-Foo': 'Foo'})
         self.get_account()
 
-        self.modify_container(test_name, headers={'X-Container-Meta-Foo': 'Bar'})
+        self.modify_container(test_name,
+                              headers={'X-Container-Meta-Foo': 'Bar'})
         self.get_account()
 
         self.find_container(test_name)
@@ -178,9 +179,15 @@ class SwiftServiceTest(object):
                 self.create_container(name)
                 for i in range(count):
                     obj = 'obj{0}'.format(i)
-                    print(name,obj)
+                    if self.debug:
+                        print(name,obj)
+                    contents = dev_rand.read(size)
+                    sha = hashlib.sha1(contents).hexdigest()
+                    header='X-Container-Meta-{0}'.format(obj)
+                    headers={header: sha}
                     self.create_object(cname=name, oname=obj,
-                                       contents=dev_rand, length=size)
+                                       contents=contents, length=size)
+                    self.modify_container(name=name, headers=headers)
         create_time = datetime.now() - start
 
         self.get_account()
@@ -188,16 +195,27 @@ class SwiftServiceTest(object):
         start = datetime.now()
         for i in range(count):
             name = '{0}{1}'.format(test_name,i)
+            cont = self.find_container(name)
             for i in range(count):
                 obj = 'obj{0}'.format(i)
+                headers, contents = self.get_object(cname=name, oname=obj)
+                sha = hashlib.sha1(contents).hexdigest()
+                header = 'x-container-meta-{0}'.format(obj)
+                if cont[0][header] != sha:
+                    print
+                    print('Bad SHA')
+                    print
+                    raise ValueError
                 self.delete_object(cname=name, oname=obj)
             self.delete_container(name)
         delete_time = datetime.now() - start
 
-        with open('stress-{0}-{1}-{2}-times.csv'.format(test_name, count, size), 'w+b') as csvfile:
+        name = 'stress-{0}-{1}-{2}-times.csv'.format(test_name, count, size)
+        with open(name, 'w+b') as csvfile:
             output = csv.writer(csvfile)
             output.writerow(['Create time', 'Delete time'])
-            output.writerow([create_time.seconds / 60.0, delete_time.seconds / 60.0])
+            output.writerow([create_time.seconds / 60.0,
+                             delete_time.seconds / 60.0])
 
 
     def test_suite(self, test_name):
@@ -212,7 +230,7 @@ if __name__ == '__main__':
                   default=False, help="Turn on basic api checking.")
     op.add_option('-s', '--stress', action='store_true', dest='stress',
                   default=False, help="Turn on stress testing.")
-    op.add_option('-n', '--name', dest='name', default="stress_test",
+    op.add_option('-n', '--name', dest='name', default="swift_test",
                   help="Name to prepend to containers")
     op.add_option('--stress-count', dest='count', default=10, type=int,
                   help="Number of containers and objects-per-container.")
@@ -220,13 +238,22 @@ if __name__ == '__main__':
                   help="Size (in bytes) of each object created")
     options, args = op.parse_args()
 
-    sst = SwiftServiceTest(debug=True)
+    username = os.environ['OS_USERNAME']
+    password = os.environ['OS_PASSWORD']
+    tenant = os.environ['OS_TENANT_NAME']
+    auth_url = os.environ['OS_AUTH_URL']
+    swift_url = os.environ['OS_OBJECT_URL']
+
+    sst = SwiftServiceTest(username=username, password=password, tenant=tenant,
+                           auth_url=auth_url, swift_url=swift_url, debug=True)
     sst.connect()
 
     if options.api:
         sst.test_api(test_name=options.name)
-    
+
     if options.stress:
         sst.stress_test(test_name=options.name, count=options.count,
                      size=options.size)
 
+    if not (options.api or options.stress):
+        print("No tests set to be run")
