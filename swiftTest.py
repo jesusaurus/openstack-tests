@@ -231,7 +231,7 @@ if __name__ == '__main__':
                   default=False, help="Turn on stress testing.")
     op.add_option('-n', '--name', dest='name', default="swift_test",
                   help="Name to prepend to containers")
-    op.add_option('--stress-count', dest='count', default=10, type=int,
+    op.add_option('-c', '--stress-count', dest='count', default=10, type=int,
                   help="Number of containers and objects-per-container.")
     op.add_option('--stress-size', dest='size', default=2**20, type=int,
                   help="Size (in bytes) of each object created")
