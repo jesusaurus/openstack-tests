@@ -102,7 +102,7 @@ class NovaServiceTest(object):
             self.server[newid]['time'] = {}
             self.server[newid]['time']['create_start'] = datetime.now()
             print("Creating server {0}".format(newid))
-            sleep(0.5) #prevent being rate-limited
+            sleep(1) #prevent being rate-limited
 
         create_list = self.server.keys()
         active_list = []
