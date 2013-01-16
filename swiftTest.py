@@ -153,16 +153,11 @@ class SwiftServiceTest(object):
 
         self.create_container(test_name,
                               headers={'X-Container-Meta-Foo': 'Foo'})
-        self.get_account()
-
         self.modify_container(test_name,
                               headers={'X-Container-Meta-Foo': 'Bar'})
-        self.get_account()
-
         self.find_container(test_name)
-        self.get_account()
-
         self.delete_container(test_name)
+
         self.get_account()
 
 
@@ -188,8 +183,6 @@ class SwiftServiceTest(object):
                                        contents=contents, length=size)
                     self.modify_container(name=name, headers=headers)
         create_time = datetime.now() - start
-
-        self.get_account()
 
         start = datetime.now()
         for i in range(count):
