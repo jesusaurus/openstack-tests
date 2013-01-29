@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
     print("reticulating splines")
     nova_test.set_flavor('standard.xsmall')
-    nova_test.set_image('Ubuntu Precise 12.04 LTS Server 64-bit 20121026')
+    nova_test.set_image('Ubuntu Precise 12.04 LTS Server 64-bit 20121026 (b)')
 
     signal.alarm(nova_test.timeout*60)
     nova_test.create()
