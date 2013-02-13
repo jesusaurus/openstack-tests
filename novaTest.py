@@ -12,8 +12,6 @@ from time import sleep
 #nova libs
 from novaclient import base
 from novaclient.exceptions import NotFound as NovaNotFound
-from novaclient.exceptions import OverLimit as NovaOverLimit
-from novaclient.exceptions import ClientException as NovaClientException
 from novaclient.v1_1 import client
 
 #cube libs
@@ -91,12 +89,10 @@ class NovaServiceTest(object):
                                                      image=self.image,
                                                      flavor=self.flavor,
                                                      key_name=self.keypair)
-            except NovaOverLimit as nol:
-                print(nol)
+            except Exception as e:
+                print(e)
                 self.dieGracefully()
-            except NovaClientException as nce:
-                print(nce)
-                self.dieGracefully()
+
             newid = newserver._info['id']
             self.server[newid] = {}
             self.server[newid]['time'] = {}
@@ -111,8 +107,8 @@ class NovaServiceTest(object):
             for i in create_list:
                 try:
                     _server = self.nova.servers.get(i)
-                except NovaClientException as nce:
-                    print(nce)
+                except Exception as e:
+                    print(e)
                     self.dieGracefully()
 
                 if _server.status.startswith("BUILD"):
@@ -199,8 +195,8 @@ class NovaServiceTest(object):
                     self.server[i]['active'] = False
                     print("Server {0} has died".format(i))
                     sys.stdout.flush()
-                except NovaClientException as nce:
-                    print(nce)
+                except Exception as e:
+                    print(e)
                     self.dieGracefully()
                 else:
                     if _server.status.startswith("ERROR"):
