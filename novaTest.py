@@ -70,7 +70,7 @@ class NovaServiceTest(object):
                 self.nova.servers.delete(_server.id)
                 exit = True
         if exit:
-            self.dieGracefully(0)
+            self.dieGracefully()
 
 
     def set_flavor(self, flavor):
