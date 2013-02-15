@@ -65,9 +65,10 @@ class NovaServiceTest(object):
         for _server in self.nova.servers.list():
             if previous.match(_server.name):
                 print("\nDetected active instance from another run, deleting")
-                self.nova.servers.delete(_server.id)
+                self.server[_server.id] = {}
                 exit = True
         if exit:
+            self.deleteAll()
             self.dieGracefully()
 
 
@@ -288,8 +289,15 @@ class NovaServiceTest(object):
 
 
     def deleteAll(self):
+        exc_list = []
         for i in self.server.keys():
-            self.nova.servers.delete(i)
+            try:
+                self.nova.servers.delete(i)
+            except Exception as e:
+                exc_list.append(e)
+                pass
+        for e in exc_list:
+            raise e
 
 if __name__ == "__main__":
 
