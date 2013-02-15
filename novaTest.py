@@ -68,7 +68,6 @@ class NovaServiceTest(object):
                 self.server[_server.id] = {}
                 exit = True
         if exit:
-            self.deleteAll()
             self.dieGracefully()
 
 
@@ -92,7 +91,7 @@ class NovaServiceTest(object):
                                                      key_name=self.keypair)
             except Exception as e:
                 print(e)
-                self.dieGracefully()
+                self.dieGracefully('Failed to create servers.')
 
             newid = newserver._info['id']
             self.server[newid] = {}
@@ -283,8 +282,10 @@ class NovaServiceTest(object):
                              60.0 for i in self.server.keys()])
 
 
-    def dieGracefully(self, code=-1):
+    def dieGracefully(self, code=-1, msg=None):
         self.deleteAll()
+        if msg:
+            print(msg)
         sys.exit(code)
 
 
@@ -323,7 +324,7 @@ if __name__ == "__main__":
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
-        nova_test.dieGracefully()
+        nova_test.dieGracefully('Received SIGINT')
     signal.signal(signal.SIGINT, signal_handler)
 
     def alarm_handler(signum, frame):
