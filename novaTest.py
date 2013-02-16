@@ -101,7 +101,6 @@ class NovaServiceTest(object):
             sleep(1) #prevent being rate-limited
 
         create_list = self.server.keys()
-        active_list = []
         backoff = 1
         while create_list:
             for i in create_list:
@@ -114,7 +113,6 @@ class NovaServiceTest(object):
                 if _server.status.startswith("BUILD"):
                     pass
                 elif _server.status == "ACTIVE":
-                    active_list.append(i)
                     create_list.remove(i)
                     self.server[i]['time']['create_end'] = datetime.now()
                     self.server[i]['time']['create_total'] = \
@@ -296,7 +294,6 @@ class NovaServiceTest(object):
                 self.nova.servers.delete(i)
             except Exception as e:
                 exc_list.append(e)
-                pass
         for e in exc_list:
             raise e
 
