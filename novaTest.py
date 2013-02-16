@@ -91,7 +91,7 @@ class NovaServiceTest(object):
                                                      key_name=self.keypair)
             except Exception as e:
                 print(e)
-                self.dieGracefully('Failed to create servers.')
+                self.dieGracefully(msg='Failed to create servers.')
 
             newid = newserver._info['id']
             self.server[newid] = {}
@@ -324,7 +324,7 @@ if __name__ == "__main__":
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
-        nova_test.dieGracefully('Received SIGINT')
+        nova_test.dieGracefully(msg='Received SIGINT')
     signal.signal(signal.SIGINT, signal_handler)
 
     def alarm_handler(signum, frame):
