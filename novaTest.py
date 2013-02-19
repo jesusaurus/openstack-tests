@@ -291,6 +291,7 @@ class NovaServiceTest(object):
         exc_list = []
         for i in self.server.keys():
             try:
+                print('Deleting server: {0}'.format(i))
                 self.nova.servers.delete(i)
             except Exception as e:
                 exc_list.append(e)
