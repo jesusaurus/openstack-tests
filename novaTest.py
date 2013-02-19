@@ -14,9 +14,6 @@ from novaclient import base
 from novaclient.exceptions import NotFound as NovaNotFound
 from novaclient.v1_1 import client
 
-#cube libs
-from cube import Cube
-
 
 class NovaServiceTest(object):
     '''Class to manage creating and deleting nova instances'''
@@ -215,13 +212,6 @@ class NovaServiceTest(object):
         if not os.path.isdir('{0}/results'.format(self.path)):
             os.makedirs('{0}/results'.format(self.path))
 
-        data_cube = Cube(hostname="15.185.114.206")
-        cube_data = {}
-        cube_data['create_total'] = []
-        cube_data['delete_total'] = []
-        cube_data['total'] = []
-        az = self.region.split('.')[0]
-
         for i in self.server.keys():
             data = {}
             t = self.server[i]['time']
@@ -248,10 +238,6 @@ class NovaServiceTest(object):
                     data['create_total'] = v.seconds / 60.0
                 elif k == 'delete_total':
                     data['delete_total'] = v.seconds / 60.0
-            cube_data['create_total'].append(data['create_total'])
-            cube_data['delete_total'].append(data['delete_total'])
-            cube_data['total'].append(data['total'])
-        data_cube.put("server_timing", ({'az': az}, {'times': cube_data}))
         meanlife = sumlife / self.count
 
         mintime = minlife.seconds / 60.0
@@ -289,12 +275,14 @@ class NovaServiceTest(object):
 
     def deleteAll(self):
         exc_list = []
+
         for i in self.server.keys():
             try:
                 print('Deleting server: {0}'.format(i))
                 self.nova.servers.delete(i)
             except Exception as e:
                 exc_list.append(e)
+
         for e in exc_list:
             raise e
 
