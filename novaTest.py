@@ -281,8 +281,10 @@ class NovaServiceTest(object):
                 print('Deleting server: {0}'.format(i))
                 self.nova.servers.delete(i)
             except Exception as e:
+                print('Encountered an Exception: {0}'.format(e))
                 exc_list.append(e)
 
+        print('Raising encountered exceptions.')
         for e in exc_list:
             raise e
 
