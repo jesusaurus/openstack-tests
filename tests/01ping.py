@@ -8,6 +8,6 @@ def run(servers, **kwargs):
             subprocess.check_call(['ping', '-c 3', ip])
         except Exception as e:
             print(e)
-        else:
-            print("ping successful")
+
+    print("ping successful")
 
