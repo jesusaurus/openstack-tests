@@ -284,9 +284,10 @@ class NovaServiceTest(object):
                 print('Encountered an Exception: {0}'.format(e))
                 exc_list.append(e)
 
-        print('Raising encountered exceptions.')
-        for e in exc_list:
-            raise e
+        if exc_list:
+            print('Raising encountered exceptions.')
+            for e in exc_list:
+                raise e
 
 if __name__ == "__main__":
 
