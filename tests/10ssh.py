@@ -11,7 +11,7 @@ queue = mp.Queue()
 times = mp.Queue()
 
 def ssh(user, host):
-    tryLimit = 20
+    tryLimit = 5
     count = 0
     result = {}
     result['host'] = host
