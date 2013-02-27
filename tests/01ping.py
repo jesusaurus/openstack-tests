@@ -6,25 +6,33 @@ def run(servers, **kwargs):
 
     times = {}
     count = 1
-    max_count = 30
-    sleep_time = 1
+    max_count = 10
+    sleep_time = 3
     ips = [ servers[x]['ip'] for x in servers.keys() ]
 
     while count < max_count:
-        procs = []
+        procs = {}
         for ip in ips:
             if ip not in times:
-                procs.append(subprocess.Popen(['ping', '-c 1', ip],
+                procs[ip] = subprocess.Popen(['ping', '-c 1', ip],
                                               stdout=subprocess.PIPE,
-                                              stderr=subprocess.PIPE))
-        for proc in procs:
-            proc.communicate()
+                                              stderr=subprocess.PIPE)
+        for ip, proc in procs.iteritems():
+            print(ip)
+            (out, err) = proc.communicate()
             if proc.returncode is 0:
-                print("ping successful: {0}".format(ip))
+                print(out)
                 times[ip] = count * sleep_time
+            else:
+                print(out)
+                print(err)
         time.sleep(sleep_time)
         count += 1
 
     for ip in ips:
         if ip not in times:
-            raise Exception("Could not ping {0}".format(ip))
+            print("Could not ping {0}.".format(ip))
+            fail = True
+
+    if fail:
+        raise Exception("Could not ping some servers.")
