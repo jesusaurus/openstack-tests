@@ -9,7 +9,7 @@ def run(servers, **kwargs):
 
     times = {}
     count = 1
-    max_count = 10
+    max_count = 20
     sleep_time = 3
     ips = [ servers[x]['ip'] for x in servers.keys() ]
 
@@ -17,7 +17,7 @@ def run(servers, **kwargs):
         procs = {}
         for ip in ips:
             if ip not in times:
-                procs[ip] = subprocess.Popen(['ping', '-c 1', ip],
+                procs[ip] = subprocess.Popen(['ping', '-q', '-n', '-c 3', ip],
                                               stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE)
         for ip, proc in procs.iteritems():

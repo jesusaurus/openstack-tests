@@ -11,7 +11,7 @@ queue = mp.Queue()
 times = mp.Queue()
 
 def ssh(user, host):
-    tryLimit = 5
+    tryLimit = 20
     count = 0
     result = {}
     result['host'] = host
@@ -30,10 +30,11 @@ def ssh(user, host):
                              stderr=sp.PIPE)
             (out, err) = proc.communicate()
             if proc.returncode is 0:
-                logger.debug(out)
                 result[host]['ssh_close'] = datetime.now()
                 result[host]['ssh_total'] = result[host]['ssh_close'] - result[host]['ssh_open']
                 times.put(result)
+                logger.debug(out)
+                logger.info("Successful ssh to {0}".format(host))
                 break
             else:
                 logger.info(out)
