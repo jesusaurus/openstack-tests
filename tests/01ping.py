@@ -29,6 +29,7 @@ def run(servers, **kwargs):
         time.sleep(sleep_time)
         count += 1
 
+    fail = False
     for ip in ips:
         if ip not in times:
             print("Could not ping {0}.".format(ip))
