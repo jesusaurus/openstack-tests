@@ -314,6 +314,16 @@ if __name__ == "__main__":
     if 'NOVA_NAME' in os.environ:
         name = os.environ['NOVA_NAME']
 
+    from optparse import OptionParser
+    op = OptionParser()
+    op.add_option('-l', '--log-level', dest='log_level', type=str,
+                  default='info', help='Logging output level.')
+    options, args = op.parse_args()
+
+    if options.log_level.upper() in ['DEBUG', 'INFO', 'WARNING', 'ERROR',
+                                     'CRITICAL']:
+        logger.setLevel(getattr(logging, options.log_level.upper()))
+
     nova_test = NovaServiceTest(username=username, password=password,
                                 tenant=tenant, auth_url=auth_url,
                                 region=region, keypair=keypair,
