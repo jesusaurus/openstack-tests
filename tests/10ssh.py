@@ -15,6 +15,7 @@ def ssh(user, host):
     result[host] = {}
     result[host]['ssh_open'] = datetime.now()
     backoff = 1
+    factor = 2
     while count < tryLimit:
         try:
             proc = sp.Popen(['ssh',
@@ -32,7 +33,7 @@ def ssh(user, host):
                 break
         except Exception as e:
             queue.put(e)
-        sleep(.5 * backoff)
+        sleep(factor * backoff)
         backoff += 1
         count += 1
 
@@ -47,7 +48,7 @@ def run(servers, **kwargs):
         procs[ip].start()
 
     for ip in ips:
-        procs[ip].join(30)
+        procs[ip].join()
 
     if not queue.empty():
         print('At least one exception raised, reraising.')
