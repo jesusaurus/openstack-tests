@@ -15,37 +15,39 @@ def ssh(user, host):
     result[host] = {}
     result[host]['ssh_open'] = datetime.now()
     backoff = 1
-    while count <= tryLimit:
+    while count < tryLimit:
         try:
-            # this will raise an exception if non-zero
-            retval = sp.check_call(['ssh', '-o StrictHostKeyChecking=no', '-o UserKnownHostsFile=/dev/null', '{0}@{1}'.format(user,host), '/bin/true'])
-            if retval == 0:
+            proc = sp.Popen(['ssh',
+                             '-o StrictHostKeyChecking=no',
+                             '-o UserKnownHostsFile=/dev/null',
+                             '{0}@{1}'.format(user,host),
+                             '/bin/true'],
+                             stdout=sp.PIPE,
+                             stderr=sp.PIPE)
+            (out, err) = proc.communicate()
+            if proc.returncode is 0:
                 result[host]['ssh_close'] = datetime.now()
                 result[host]['ssh_total'] = result[host]['ssh_close'] - result[host]['ssh_open']
                 times.put(result)
                 break
         except Exception as e:
-            if count <= tryLimit:
-                sleep(.5 * backoff)
-                backoff += 1
-                count += 1
-                continue
-            else:
-                queue.put(e)
-                break
+            queue.put(e)
+        sleep(.5 * backoff)
+        backoff += 1
+        count += 1
 
 
 def run(servers, **kwargs):
     print('ssh test')
 
     ips = [ servers[x]['ip'] for x in servers.keys() ]
-    proc = {}
+    procs = {}
     for ip in ips:
-        proc[ip] = mp.Process(target=ssh, args=('root', ip))
-        proc[ip].start()
+        procs[ip] = mp.Process(target=ssh, args=('root', ip))
+        procs[ip].start()
 
     for ip in ips:
-        proc[ip].join()
+        procs[ip].join(30)
 
     if not queue.empty():
         print('At least one exception raised, reraising.')
