@@ -1,8 +1,11 @@
+import logging
 import subprocess as sp
 import multiprocessing as mp
 from time import sleep
 from datetime import datetime
 import csv
+
+logger = logging.getLogger('nova_test.ssh')
 
 queue = mp.Queue()
 times = mp.Queue()
@@ -27,10 +30,14 @@ def ssh(user, host):
                              stderr=sp.PIPE)
             (out, err) = proc.communicate()
             if proc.returncode is 0:
+                logger.debug(out)
                 result[host]['ssh_close'] = datetime.now()
                 result[host]['ssh_total'] = result[host]['ssh_close'] - result[host]['ssh_open']
                 times.put(result)
                 break
+            else:
+                logger.info(out)
+                logger.warn(err)
         except Exception as e:
             queue.put(e)
         sleep(factor * backoff)
@@ -39,7 +46,7 @@ def ssh(user, host):
 
 
 def run(servers, **kwargs):
-    print('ssh test')
+    logger.info('Entering ssh test')
 
     ips = [ servers[x]['ip'] for x in servers.keys() ]
     procs = {}
@@ -51,7 +58,7 @@ def run(servers, **kwargs):
         procs[ip].join()
 
     if not queue.empty():
-        print('At least one exception raised, reraising.')
+        logger.error('At least one exception raised, reraising.')
         raise queue.get()
 
     while not times.empty():

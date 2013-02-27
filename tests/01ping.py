@@ -1,8 +1,11 @@
+import logging
 import subprocess
 import time
 
+logger = logging.getLogger('nova_test.ping')
+
 def run(servers, **kwargs):
-    print('ping test')
+    logger.info('entering ping test')
 
     times = {}
     count = 1
@@ -18,21 +21,21 @@ def run(servers, **kwargs):
                                               stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE)
         for ip, proc in procs.iteritems():
-            print(ip)
             (out, err) = proc.communicate()
             if proc.returncode is 0:
-                print(out)
+                logger.info('Successful ping: {0}'.format(ip))
+                logger.debug(out)
                 times[ip] = count * sleep_time
             else:
-                print(out)
-                print(err)
+                logger.info(out)
+                logger.warn(err)
         time.sleep(sleep_time)
         count += 1
 
     fail = False
     for ip in ips:
         if ip not in times:
-            print("Could not ping {0}.".format(ip))
+            logger.warn("Could not ping {0}.".format(ip))
             fail = True
 
     if fail:

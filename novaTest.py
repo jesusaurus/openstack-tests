@@ -2,6 +2,7 @@
 
 #python libs
 import csv
+import logging
 import os
 import re
 import signal
@@ -14,6 +15,14 @@ from novaclient import base
 from novaclient.exceptions import NotFound as NovaNotFound
 from novaclient.v1_1 import client
 
+
+logging.basicConfig(format='%(levelname)s\t%(name)s\t%(message)s')
+
+requests_log = logging.getLogger("requests")
+requests_log.setLevel(logging.WARNING)
+
+logger = logging.getLogger('nova_test')
+logger.setLevel(logging.INFO)
 
 class NovaServiceTest(object):
     '''Class to manage creating and deleting nova instances'''
@@ -61,7 +70,7 @@ class NovaServiceTest(object):
         exit = False
         for _server in self.nova.servers.list():
             if previous.match(_server.name):
-                print("\nDetected active instance from another run, deleting")
+                logger.warning("Detected active instance from another run, deleting")
                 self.server[_server.id] = {}
                 exit = True
         if exit:
@@ -87,14 +96,14 @@ class NovaServiceTest(object):
                                                      flavor=self.flavor,
                                                      key_name=self.keypair)
             except Exception as e:
-                print(e)
+                logger.exception("Could not create server.")
                 self.dieGracefully(msg='Failed to create servers.')
 
             newid = newserver._info['id']
             self.server[newid] = {}
             self.server[newid]['time'] = {}
             self.server[newid]['time']['create_start'] = datetime.now()
-            print("Creating server {0}".format(newid))
+            logger.info("Creating server {0}".format(newid))
             sleep(1) #prevent being rate-limited
 
         create_list = self.server.keys()
@@ -104,7 +113,7 @@ class NovaServiceTest(object):
                 try:
                     _server = self.nova.servers.get(i)
                 except Exception as e:
-                    print(e)
+                    logger.exception("Could not get server info.")
                     self.dieGracefully()
 
                 if _server.status.startswith("BUILD"):
@@ -116,17 +125,17 @@ class NovaServiceTest(object):
                             self.server[i]['time']['create_end'] - \
                             self.server[i]['time']['create_start']
                     self.server[i]['active'] = True
-                    print("Server {0} created".format(i))
+                    logger.info("Server {0} created".format(i))
                     self.server[i]['ip'] = \
                             _server.addresses['private'][1]['addr']
                     #_server.addresses['public'][0]['addr']
                     #eventually hpcloud will use a version of openstack that
                     #does this right
                 elif _server.status.startswith("ERROR"):
-                    print("Server {0} status: {1}".format(i, _server.status))
+                    logger.error("Server {0} status: {1}".format(i, _server.status))
                     self.dieGracefully()
                 else:
-                    print "Server {0} status: {1}".format(i, _server.status)
+                    logger.warn("Server {0} status: {1}".format(i, _server.status))
                 # making nova calls too quickly will get us rate-limited
                 sleep(1 * backoff)
                 backoff += 1
@@ -137,7 +146,7 @@ class NovaServiceTest(object):
         Search the tests/ directory for python modules
         and call the run() function in any modules found.
         """
-        print('\nOther Tests...\n')
+        logger.info('Running modules in tests/ directory.')
 
         test = {}
         tdir = '{0}/{1}'.format(self.path, 'tests')
@@ -158,7 +167,7 @@ class NovaServiceTest(object):
                 try:
                     test[name].run(servers=self.server)
                 except Exception as e:
-                    print(e)
+                    logger.exception("Test module failed.")
                     self.dieGracefully()
 
 
@@ -167,7 +176,7 @@ class NovaServiceTest(object):
         Wait for each instance to die, and record how long it takes
         Then calculate the total lifespan of the instance.
         '''
-        print("\nWaiting for instances to die.")
+        logger.info("Waiting for instances to die.")
 
         deletestart = datetime.now()
         self.deleteAll()
@@ -188,15 +197,14 @@ class NovaServiceTest(object):
                             self.server[i]['time']['delete_total']
                     self.server[i]['time']['lifespan'] = lifespan
                     self.server[i]['active'] = False
-                    print("Server {0} has died".format(i))
+                    logger.info("Server {0} has died".format(i))
                     sys.stdout.flush()
                 except Exception as e:
-                    print(e)
+                    logger.exception("Unknown exception")
                     self.dieGracefully()
                 else:
                     if _server.status.startswith("ERROR"):
-                        print("\nServer {0} has entered an error state"
-                                .format(i))
+                        logger.error("Server {0} has entered an error state".format(i))
                         self.dieGracefully()
                 sleep(1 * backoff) # prevent rate-limiting
                 backoff += 1
@@ -215,9 +223,9 @@ class NovaServiceTest(object):
         for i in self.server.keys():
             data = {}
             t = self.server[i]['time']
-            print("\nServer ID: {0}".format(i))
+            logger.debug("Server ID: {0}".format(i))
             for k,v in t.items():
-                print("{0}: {1}".format(k, v))
+                logger.debug("{0}: {1}".format(k, v))
                 if k == 'lifespan':
                     try:
                         if minlife > v:
@@ -244,9 +252,9 @@ class NovaServiceTest(object):
         maxtime = maxlife.seconds / 60.0
         meantime = meanlife.seconds / 60.0
 
-        print("\n\nmin lifespan: {0} ({1})".format(str(minlife), mintime))
-        print("max lifespan: {0} ({1})".format(str(maxlife), maxtime))
-        print("mean lifetime: {0} ({1})".format(str(meanlife), meantime))
+        logger.info("min lifespan: {0} ({1})".format(str(minlife), mintime))
+        logger.info("max lifespan: {0} ({1})".format(str(maxlife), maxtime))
+        logger.info("mean lifetime: {0} ({1})".format(str(meanlife), meantime))
 
         with open(csvfiles['life'], 'w+b') as f:
             output = csv.writer(f)
@@ -278,14 +286,14 @@ class NovaServiceTest(object):
 
         for i in self.server.keys():
             try:
-                print('Deleting server: {0}'.format(i))
+                logger.info('Deleting server: {0}'.format(i))
                 self.nova.servers.delete(i)
             except Exception as e:
-                print('Encountered an Exception: {0}'.format(e))
+                logger.exception('Encountered an Exception: {0}'.format(e))
                 exc_list.append(e)
 
         if exc_list:
-            print('Raising encountered exceptions.')
+            logger.warn('Raising encountered exceptions.')
             for e in exc_list:
                 raise e
 
@@ -318,14 +326,14 @@ if __name__ == "__main__":
 
     def alarm_handler(signum, frame):
         '''Trap SIGALRM'''
-        print("Maximum lifespan greater than {0}".format(hardLimit))
+        logger.error("Maximum lifespan greater than {0}".format(hardLimit))
         nova_test.dieGracefully()
     signal.signal(signal.SIGALRM, alarm_handler)
 
     nova_test.connect()
     nova_test.cleanup()
 
-    print("reticulating splines")
+    logger.info("reticulating splines")
     nova_test.set_flavor('standard.xsmall')
     nova_test.set_image('Ubuntu Precise 12.04 LTS Server 64-bit 20121026 (b)')
 
