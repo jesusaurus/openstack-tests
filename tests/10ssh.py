@@ -45,9 +45,10 @@ def ssh(user, host):
         backoff += 1
         count += 1
 
-    msg = 'Could not ssh to {0}'.format(host)
-    logger.error(msg)
-    queue.put(Exception(msg))
+    if 'ssh_total' not in result[host]:
+        msg = 'Could not ssh to {0}'.format(host)
+        logger.error(msg)
+        queue.put(Exception(msg))
 
 
 def run(servers, **kwargs):
