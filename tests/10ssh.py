@@ -33,12 +33,15 @@ def ssh(user, host):
                 result[host]['ssh_close'] = datetime.now()
                 result[host]['ssh_total'] = result[host]['ssh_close'] - result[host]['ssh_open']
                 times.put(result)
-                logger.debug(out)
+                if out not in [None, ""]:
+                    logger.debug(out)
                 logger.info("Successful ssh to {0}".format(host))
                 break
             else:
-                logger.info(out)
-                logger.warn(err)
+                if out not in [None, ""]:
+                    logger.info(out)
+                if err not in [None, ""]:
+                    logger.warn(err)
         except Exception as e:
             queue.put(e)
         sleep(factor * backoff)
