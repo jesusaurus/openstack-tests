@@ -27,7 +27,7 @@ def run(servers, **kwargs):
                 logger.debug(out)
                 times[ip] = count * sleep_time
             else:
-                logger.info(out)
+                logger.warn(out)
                 logger.warn(err)
         time.sleep(sleep_time)
         count += 1
