@@ -44,7 +44,7 @@ def ssh(user, host):
                     logger.warn(err)
         except Exception as e:
             queue.put(e)
-        sleep(factor * backoff)
+        sleep(factor ** backoff)
         backoff += 1
         count += 1
 
