@@ -38,12 +38,14 @@ def ssh(user, host):
                 logger.info("Successful ssh to {0}".format(host))
                 break
             else:
+                logger.info("Unsuccessful ssh to {0}".format(host))
                 if out not in [None, ""]:
                     logger.info(out)
                 if err not in [None, ""]:
                     logger.warn(err)
         except Exception as e:
             queue.put(e)
+        logger.debug("Sleeping for {0}".format(factor ** backoff))
         sleep(factor ** backoff)
         backoff += 1
         count += 1
