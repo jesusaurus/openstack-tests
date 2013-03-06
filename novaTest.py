@@ -29,7 +29,7 @@ class NovaServiceTest(object):
 
     def __init__(self, username=None, password=None, tenant=None,
                  auth_url=None, region=None, keypair=None, auth_ver='2.0',
-                 count=1, instance_name='NovaServiceTest', debug=False):
+                 count=1, instance_name='NovaServiceTest'):
 
         self.username = username
         self.password = password
@@ -40,7 +40,6 @@ class NovaServiceTest(object):
         self.auth_ver = auth_ver
         self.count = count
         self.test_name = instance_name
-        self.debug = debug
 
         self.nova = None
         self.timeout = 20
@@ -327,7 +326,7 @@ if __name__ == "__main__":
     nova_test = NovaServiceTest(username=username, password=password,
                                 tenant=tenant, auth_url=auth_url,
                                 region=region, keypair=keypair,
-                                instance_name=name, count=count, debug=True)
+                                instance_name=name, count=count)
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
