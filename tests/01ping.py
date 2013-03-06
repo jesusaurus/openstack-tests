@@ -5,7 +5,7 @@ import time
 logger = logging.getLogger('nova_test.ping')
 
 def run(servers, **kwargs):
-    logger.info('entering ping test')
+    logger.info('Entering ping test')
 
     times = {}
     count = 1
