@@ -336,7 +336,7 @@ if __name__ == "__main__":
 
     def alarm_handler(signum, frame):
         '''Trap SIGALRM'''
-        logger.error("Maximum lifespan greater than {0}".format(hardLimit))
+        logger.error("Maximum lifespan greater than {0}".format(nova_test.timeout))
         nova_test.dieGracefully()
     signal.signal(signal.SIGALRM, alarm_handler)
 
