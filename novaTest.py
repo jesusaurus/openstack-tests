@@ -29,7 +29,7 @@ class NovaServiceTest(object):
 
     def __init__(self, username=None, password=None, tenant=None,
                  auth_url=None, region=None, keypair=None, auth_ver='2.0',
-                 count=1, instance_name='NovaServiceTest'):
+                 count=1, instance_name='NovaServiceTest', timeout=20):
 
         self.username = username
         self.password = password
@@ -40,9 +40,9 @@ class NovaServiceTest(object):
         self.auth_ver = auth_ver
         self.count = count
         self.test_name = instance_name
+        self.timeout = timeout
 
         self.nova = None
-        self.timeout = 20
         self.server = {}
 
         self.path = os.path.dirname(__file__)
@@ -317,6 +317,9 @@ if __name__ == "__main__":
     op = OptionParser()
     op.add_option('-l', '--log-level', dest='log_level', type=str,
                   default='info', help='Logging output level.')
+    op.add_option('-t', '--timeout', dest='timeout', type=int,
+                  default=20, help='Timeout (in minutes) for creating or '
+                  'deleting instances')
     options, args = op.parse_args()
 
     if options.log_level.upper() in ['DEBUG', 'INFO', 'WARNING', 'ERROR',
@@ -326,7 +329,8 @@ if __name__ == "__main__":
     nova_test = NovaServiceTest(username=username, password=password,
                                 tenant=tenant, auth_url=auth_url,
                                 region=region, keypair=keypair,
-                                instance_name=name, count=count)
+                                instance_name=name, count=count,
+                                timeout=options.timeout)
 
     def signal_handler(signal, frame):
         '''Trap SIGINT'''
