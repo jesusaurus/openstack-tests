@@ -34,15 +34,15 @@ def ssh(user, host):
                 result[host]['ssh_total'] = result[host]['ssh_close'] - result[host]['ssh_open']
                 times.put(result)
                 if out not in [None, ""]:
-                    logger.debug(out)
+                    logger.debug(out.strip())
                 logger.info("Successful ssh to {0}".format(host))
                 break
             else:
                 logger.info("Unsuccessful ssh to {0}".format(host))
                 if out not in [None, ""]:
-                    logger.info(out)
+                    logger.info(out.strip())
                 if err not in [None, ""]:
-                    logger.warn(err)
+                    logger.warn(err.strip())
         except Exception as e:
             queue.put(e)
         logger.debug("Sleeping for {0}".format(factor ** backoff))

@@ -24,11 +24,11 @@ def run(servers, **kwargs):
             (out, err) = proc.communicate()
             if proc.returncode is 0:
                 logger.info('Successful ping: {0}'.format(ip))
-                logger.debug(out)
+                logger.debug(out.strip())
                 times[ip] = count * sleep_time
             else:
-                logger.warn(out)
-                logger.warn(err)
+                logger.warn(out.strip())
+                logger.warn(err.strip())
         time.sleep(sleep_time)
         count += 1
 
