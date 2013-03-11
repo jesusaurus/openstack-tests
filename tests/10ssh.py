@@ -62,7 +62,7 @@ def run(servers, **kwargs):
     ips = [ servers[x]['ip'] for x in servers.keys() ]
     procs = {}
     for ip in ips:
-        procs[ip] = mp.Process(target=ssh, args=('root', ip))
+        procs[ip] = mp.Process(target=ssh, args=('ubuntu', ip))
         procs[ip].start()
 
     for ip in ips:
