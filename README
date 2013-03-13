@@ -1,0 +1,6 @@
+This is a collection of functional tests for various openstack projects.
+The tests use the appropriate python client library to make the api calls.
+
+These tests are meant to cover the typical use case of the end-user.
+For a more intensive suite of tests including administrative functions
+check out the openstack/tempest project.
